@@ -1,21 +1,17 @@
-const STORAGE_KEY = 'career-cabinet-data-v1';
-const defaultCompanies = [
-  { id: crypto.randomUUID(), name: 'サンプル商事株式会社', industry: '商社', status: 'active', mypageUrl: 'https://example.com/mypage', homepageUrl: 'https://example.com', loginId: 'sample@example.com', password: 'sample-password', esNote: 'この会社で実現したいことを書き留めています。', interviewNote: '一次面接：学生時代に力を入れたこと、志望理由。', fields: [{ key: '次回選考', value: '一次面接 6/24' }], attachments: [], updatedAt: new Date().toISOString() }
-];
-let companies = loadCompanies();
+let companies = [];
+let authMode = 'login';
 let pendingAttachments = [];
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-function loadCompanies() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
-}
-function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(companies)); }
+async function api(path, options = {}) { const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || '通信に失敗しました'); return body; }
+async function loadCompanies() { const result = await api('/api/companies'); companies = result.companies || []; }
+async function persist() { await api('/api/companies', { method: 'PUT', body: JSON.stringify({ companies }) }); }
 function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
 function statusLabel(status) { return { active: '選考中', offer: '内定', closed: '終了' }[status] || status; }
 function dateLabel(value) { return value ? new Intl.DateTimeFormat('ja-JP', { month: 'short', day: 'numeric' }).format(new Date(value)) : ''; }
 function initials(name) { return [...(name || '？')].slice(0, 2).join(''); }
-function saveAndRender(message) { persist(); renderAll(); if (message) showToast(message); }
+async function saveAndRender(message) { try { await persist(); renderAll(); if (message) showToast(message); } catch (error) { showToast(error.message); } }
 function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2400); }
 
 function renderAll() {
@@ -62,12 +58,15 @@ $('#cancelDialog').addEventListener('click', () => $('#companyDialog').close());
 $('#togglePassword').addEventListener('click', () => { const input = $('#loginPassword'); input.type = input.type === 'password' ? 'text' : 'password'; });
 $('#addFieldButton').addEventListener('click', () => $('#customFieldsList').insertAdjacentHTML('beforeend', customFieldMarkup()));
 $('#fileInput').addEventListener('change', (event) => { readFiles(event.target.files); event.target.value = ''; });
-$('#companyForm').addEventListener('submit', (event) => { event.preventDefault(); const company = getFormCompany(); if (!company.name) return; const index = companies.findIndex((item) => item.id === company.id); if (index === -1) companies.unshift(company); else companies[index] = company; $('#companyDialog').close(); saveAndRender(index === -1 ? '企業を登録しました' : '企業情報を更新しました'); });
-$('#quickNoteForm').addEventListener('submit', (event) => { event.preventDefault(); const company = companies.find((item) => item.id === $('#quickCompany').value); if (!company) return; company.interviewNote = `${company.interviewNote ? `${company.interviewNote}\n` : ''}${$('#quickNote').value.trim()}`; company.updatedAt = new Date().toISOString(); $('#quickNoteForm').reset(); saveAndRender('面接メモを保存しました'); });
+$('#companyForm').addEventListener('submit', async (event) => { event.preventDefault(); const company = getFormCompany(); if (!company.name) return; const index = companies.findIndex((item) => item.id === company.id); if (index === -1) companies.unshift(company); else companies[index] = company; $('#companyDialog').close(); await saveAndRender(index === -1 ? '企業を登録しました' : '企業情報を更新しました'); });
+$('#quickNoteForm').addEventListener('submit', async (event) => { event.preventDefault(); const company = companies.find((item) => item.id === $('#quickCompany').value); if (!company) return; company.interviewNote = `${company.interviewNote ? `${company.interviewNote}\n` : ''}${$('#quickNote').value.trim()}`; company.updatedAt = new Date().toISOString(); $('#quickNoteForm').reset(); await saveAndRender('面接メモを保存しました'); });
 $('#searchInput').addEventListener('input', renderCompanyGrid); $('#statusFilter').addEventListener('change', renderCompanyGrid);
 document.addEventListener('click', async (event) => { const edit = event.target.closest('[data-edit]'); if (edit) openCompanyDialog(edit.dataset.edit); const remove = event.target.closest('[data-remove-file]'); if (remove) { pendingAttachments.splice(Number(remove.dataset.removeFile), 1); renderAttachments(); } const removeField = event.target.closest('.remove-field'); if (removeField) removeField.closest('.custom-field-row').remove(); const copy = event.target.closest('[data-copy]'); if (copy && copy.dataset.copy) { await navigator.clipboard?.writeText(copy.dataset.copy); showToast('パスワードをコピーしました'); } if (event.target.id === 'emptyAddButton') openCompanyDialog(); });
 $('#exportButton').addEventListener('click', () => { const blob = new Blob([JSON.stringify(companies, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `career-cabinet-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('データを書き出しました'); });
-$('#importButton').addEventListener('click', () => $('#importInput').click()); $('#importInput').addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const imported = JSON.parse(reader.result); if (!Array.isArray(imported)) throw new Error(); companies = imported; saveAndRender('データを読み込みました'); } catch { showToast('読み込めるデータではありません'); } }; reader.readAsText(file); event.target.value = ''; });
+$('#importButton').addEventListener('click', () => $('#importInput').click()); $('#importInput').addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async () => { try { const imported = JSON.parse(reader.result); if (!Array.isArray(imported)) throw new Error(); companies = imported; await saveAndRender('データを読み込みました'); } catch { showToast('読み込めるデータではありません'); } }; reader.readAsText(file); event.target.value = ''; });
+$('#logoutButton').addEventListener('click', async () => { await api('/api/auth', { method: 'POST', body: JSON.stringify({ action: 'logout', email: 'logout', password: 'logout123' }) }); location.reload(); });
 $('#todayLabel').textContent = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
-if (!localStorage.getItem(STORAGE_KEY)) { companies = []; persist(); }
-renderAll();
+$('#authModeButton').addEventListener('click', () => { authMode = authMode === 'login' ? 'register' : 'login'; $('#authModeButton').textContent = authMode === 'login' ? '初めて使う方はこちら（アカウント登録）' : '登録済みの方はこちら（ログイン）'; $('#authSubmit').innerHTML = authMode === 'login' ? 'ログイン <span>↗</span>' : 'アカウントを作成 <span>↗</span>'; $('#authPassword').autocomplete = authMode === 'login' ? 'current-password' : 'new-password'; $('#authError').textContent = ''; });
+$('#authForm').addEventListener('submit', async (event) => { event.preventDefault(); const submit = $('#authSubmit'); submit.disabled = true; $('#authError').textContent = ''; try { await api('/api/auth', { method: 'POST', body: JSON.stringify({ action: authMode, email: $('#authEmail').value, password: $('#authPassword').value }) }); await loadCompanies(); $('#authScreen').classList.add('hidden'); renderAll(); } catch (error) { $('#authError').textContent = error.message; } finally { submit.disabled = false; } });
+async function boot() { try { const session = await api('/api/auth'); if (!session.authenticated) return; await loadCompanies(); $('#authScreen').classList.add('hidden'); renderAll(); } catch { $('#authError').textContent = 'サーバーに接続できません。Vercelの設定を確認してください。'; } }
+boot();

@@ -11,6 +11,22 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <section class="auth-screen" id="authScreen">
+    <div class="auth-card">
+      <div class="brand auth-brand"><span class="brand-mark">C</span><div><strong>Career</strong><small>Cabinet</small></div></div>
+      <p class="section-kicker">PRIVATE JOB HUNTING CABINET</p>
+      <h1>どの端末からでも、<em>就活の続きを。</em></h1>
+      <p class="auth-copy">企業情報と選考メモを安全に同期します。</p>
+      <form id="authForm">
+        <label>メールアドレス<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
+        <label>パスワード<input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="8文字以上" /></label>
+        <p class="auth-error" id="authError"></p>
+        <button class="primary-button" type="submit" id="authSubmit">ログイン <span>↗</span></button>
+      </form>
+      <button class="auth-switch" id="authModeButton" type="button">初めて使う方はこちら（アカウント登録）</button>
+      <p class="privacy-note auth-privacy"><span class="lock-icon">⌑</span><span>データはあなたのアカウントに紐づいて保存されます。</span></p>
+    </div>
+  </section>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><span class="brand-mark">C</span><div><strong>Career</strong><small>Cabinet</small></div></div>
@@ -24,6 +40,7 @@
         <div class="privacy-note"><span class="lock-icon">⌑</span><div><strong>あなたの端末だけに保存</strong><p>データはブラウザ内に保存されます。</p></div></div>
         <button class="settings-button" id="exportButton"><span>↥</span>データを書き出す</button>
         <button class="settings-button" id="importButton"><span>↧</span>データを読み込む</button>
+        <button class="settings-button" id="logoutButton"><span>↪</span>ログアウト</button>
         <input type="file" id="importInput" accept="application/json" hidden />
       </div>
     </aside>
