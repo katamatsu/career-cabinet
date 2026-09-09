@@ -1,0 +1,14 @@
+# Local editor and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local secrets and environment variables
+.env
+.env.*
+!.env.example
+
+# Local build/dependency output
+node_modules/
+dist/
+build/

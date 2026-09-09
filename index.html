@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4efe7" />
+  <title>Career Cabinet | 就活情報管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">C</span><div><strong>Career</strong><small>Cabinet</small></div></div>
+      <p class="eyebrow">MY JOB HUNTING</p>
+      <nav class="nav-list" aria-label="メインナビゲーション">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">◈</span>ダッシュボード</button>
+        <button class="nav-item" data-view="companies"><span class="nav-icon">▦</span>企業リスト</button>
+        <button class="nav-item" data-view="notes"><span class="nav-icon">✎</span>ES・面接メモ</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><span class="lock-icon">⌑</span><div><strong>あなたの端末だけに保存</strong><p>データはブラウザ内に保存されます。</p></div></div>
+        <button class="settings-button" id="exportButton"><span>↥</span>データを書き出す</button>
+        <button class="settings-button" id="importButton"><span>↧</span>データを読み込む</button>
+        <input type="file" id="importInput" accept="application/json" hidden />
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb"><span>2025 · 26</span><i>/</i><strong id="pageTitle">ダッシュボード</strong></div>
+        <div class="top-actions"><span class="today-label" id="todayLabel"></span><button class="primary-button" id="addCompanyButton"><span>＋</span>企業を追加</button></div>
+      </header>
+
+      <section class="view active" id="dashboardView">
+        <div class="hero-heading"><div><p class="section-kicker">GOOD MORNING, JOB HUNTER</p><h1>就活のすべてを、<em>ひとつの場所</em>に。</h1><p class="hero-copy">企業情報、ログイン情報、選考メモをまとめて、次の一歩を軽くする。</p></div><div class="hero-ornament"><span>26</span><small>GRADUATION<br/>CYCLE</small></div></div>
+        <div class="stats-grid"><article class="stat-card coral"><span class="stat-label">登録企業</span><strong id="companyCount">0</strong><span class="stat-foot">社の情報を管理中</span><span class="stat-shape"></span></article><article class="stat-card cream"><span class="stat-label">選考中</span><strong id="activeCount">0</strong><span class="stat-foot">社にエントリー中</span><span class="stat-shape"></span></article><article class="stat-card green"><span class="stat-label">面接メモ</span><strong id="memoCount">0</strong><span class="stat-foot">件の記録があります</span><span class="stat-shape"></span></article></div>
+        <div class="dashboard-grid"><section class="panel recent-panel"><div class="panel-heading"><div><p class="section-kicker">YOUR COMPANIES</p><h2>最近の企業</h2></div><button class="text-button" data-view-target="companies">すべて見る <span>→</span></button></div><div id="recentCompanies" class="company-list"></div></section><section class="panel quick-panel"><div class="panel-heading"><div><p class="section-kicker">QUICK NOTE</p><h2>すぐにメモする</h2></div><span class="spark">✦</span></div><form id="quickNoteForm"><label>企業を選択<select id="quickCompany" required><option value="">企業を選ぶ</option></select></label><label>メモ<textarea id="quickNote" rows="4" placeholder="面接で聞かれたこと、気づいたこと…" required></textarea></label><button class="dark-button" type="submit">メモを保存 <span>↗</span></button></form></section></div>
+      </section>
+
+      <section class="view" id="companiesView"><div class="page-intro"><div><p class="section-kicker">COMPANY DIRECTORY</p><h1>企業リスト</h1><p>ログイン情報も選考記録も、企業ごとにひとまとめ。</p></div><div class="view-tools"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="企業名・業界で検索" /></div><select id="statusFilter"><option value="all">すべてのステータス</option><option value="active">選考中</option><option value="offer">内定</option><option value="closed">終了</option></select></div></div><div id="companiesGrid" class="companies-grid"></div></section>
+
+      <section class="view" id="notesView"><div class="page-intro"><div><p class="section-kicker">FIELD NOTES</p><h1>ES・面接メモ</h1><p>書いたこと、聞かれたこと、次に活かすこと。</p></div></div><div id="notesList" class="notes-list"></div></section>
+    </main>
+  </div>
+
+  <dialog id="companyDialog" class="company-dialog"><form method="dialog" id="companyForm"><div class="dialog-head"><div><p class="section-kicker">COMPANY PROFILE</p><h2 id="dialogTitle">企業を追加</h2></div><button class="close-button" value="cancel" aria-label="閉じる">×</button></div><input id="editingId" type="hidden" /><div class="form-grid"><label class="wide">企業名<input id="companyName" required placeholder="例：株式会社〇〇" /></label><label>業界<input id="companyIndustry" placeholder="例：IT・通信" /></label><label>ステータス<select id="companyStatus"><option value="active">選考中</option><option value="offer">内定</option><option value="closed">終了</option></select></label><label>マイページURL<input id="mypageUrl" type="url" placeholder="https://..." /></label><label>会社ホームページ<input id="homepageUrl" type="url" placeholder="https://..." /></label><label>ログインID<input id="loginId" placeholder="メールアドレスなど" /></label><label class="password-field">パスワード<div class="password-wrap"><input id="loginPassword" type="password" placeholder="パスワード" /><button type="button" id="togglePassword" aria-label="パスワードを表示">◉</button></div></label><label class="wide">ES・志望動機<textarea id="esNote" rows="4" placeholder="提出した内容や、企業ごとの志望理由…"></textarea></label><label class="wide">面接で聞かれたこと<textarea id="interviewNote" rows="4" placeholder="質問・回答・次回への申し送り…"></textarea></label></div><div class="custom-fields"><div class="custom-heading"><div><p class="section-kicker">CUSTOM FIELDS</p><h3>追加項目</h3></div><button type="button" class="outline-button" id="addFieldButton">＋ 項目を追加</button></div><div id="customFieldsList"></div></div><div class="upload-zone"><div class="upload-icon">↥</div><div><strong>資料や写真を添付</strong><p>ESの控え、説明会資料など（10MBまで）</p></div><label class="outline-button">ファイルを選ぶ<input id="fileInput" type="file" multiple hidden /></label></div><div id="attachmentsList" class="attachments-list"></div><div class="dialog-actions"><button type="button" class="cancel-button" id="cancelDialog">キャンセル</button><button type="submit" class="primary-button">保存する <span>↗</span></button></div></form></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
