@@ -4,7 +4,7 @@ let pendingAttachments = [];
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-async function api(path, options = {}) { const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || '通信に失敗しました'); return body; }
+async function api(path, options = {}) { const response = await fetch(path, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...options }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || '通信に失敗しました'); return body; }
 async function loadCompanies() { const result = await api('/api/companies'); companies = result.companies || []; }
 async function persist() { await api('/api/companies', { method: 'PUT', body: JSON.stringify({ companies }) }); }
 function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }

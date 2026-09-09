@@ -20,6 +20,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') return json(res, 200, { authenticated: Boolean(await userFromRequest(req)) });
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
   const { action, email, password } = req.body || {};
+  if (action === 'logout') return json(res, 200, {}, { 'Set-Cookie': cookie('', 0) });
   if (!email || !password || password.length < 8) return json(res, 400, { error: 'メールアドレスと8文字以上のパスワードが必要です' });
   const normalizedEmail = email.trim().toLowerCase();
   if (action === 'register') {
@@ -36,6 +37,5 @@ export default async function handler(req, res) {
     const token = await tokenFor(rows[0].id);
     return json(res, 200, { email: rows[0].email }, { 'Set-Cookie': cookie(token, 60 * 60 * 24 * 7) });
   }
-  if (action === 'logout') return json(res, 200, {}, { 'Set-Cookie': cookie('', 0) });
   return json(res, 400, { error: 'Unknown action' });
 }
