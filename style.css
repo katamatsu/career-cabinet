@@ -1,5 +1,7 @@
 * { box-sizing: border-box; }
 :root { --ink: #263536; --muted: #728080; --line: #dfe4dd; --paper: #f5f4ef; --panel: #fffefa; --coral: #ef806d; --coral-deep: #dc6756; --cream: #f4e1b5; --sage: #d9e5d3; --green: #64806f; --shadow: 0 10px 35px rgba(53, 63, 56, .06); }
+.delete-button, .card-delete-button { border: 0; color: #c26452; background: transparent; font-size: 10px; }
+.card-delete-button { width: 100%; margin-top: 15px; padding-top: 11px; border-top: 1px solid #edf0ea; text-align: right; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; }
 button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
